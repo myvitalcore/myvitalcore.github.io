@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VitalCore App — Your Wellness OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<style>
+:root{
+  --bg:#080C14; --surface:#0F1622; --surface2:#161E2E; --surface3:#1C2538;
+  --border:rgba(255,255,255,0.08); --border2:rgba(255,255,255,0.14);
+  --green:#00C47A; --green-glow:rgba(0,196,122,0.18); --green-dim:rgba(0,196,122,0.12);
+  --blue:#3B82F6; --blue-dim:rgba(59,130,246,0.12);
+  --purple:#8B5CF6; --text:#EDF0F7;
+  --muted:rgba(237,240,247,0.48); --muted2:rgba(237,240,247,0.22);
+  --max:1100px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-weight:300;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+body.no-scroll{overflow:hidden;}
+
+/* subtle grain */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");opacity:1;}
+
+/* ─── LAYOUT WRAPPER ─── */
+.wrap{width:100%;max-width:var(--max);margin:0 auto;padding:0 48px;}
+
+/* ─── NAV ─── */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;height:64px;display:flex;align-items:center;background:rgba(8,12,20,0.88);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);transition:box-shadow .3s,height .3s;}
+nav.scrolled{height:56px;box-shadow:0 4px 40px rgba(0,0,0,.45);}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;width:100%;}
+.logo{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:800;letter-spacing:-.03em;text-decoration:none;color:var(--text);flex-shrink:0;}
+.logo .dot{color:var(--green);}
+.logo sup{font-size:.5rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);vertical-align:super;margin-left:2px;}
+.nav-items{display:flex;gap:28px;align-items:center;}
+.nav-items a{text-decoration:none;color:var(--muted);font-size:.8rem;font-weight:400;letter-spacing:.04em;transition:color .25s;}
+.nav-items a:hover{color:var(--text);}
+.nav-pill{display:flex;gap:2px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px;}
+.nav-pill a{padding:6px 16px;border-radius:6px;font-size:.76rem;font-weight:500;color:var(--muted);text-decoration:none;transition:all .25s;}
+.nav-pill a.active{background:var(--green);color:#080C14;font-weight:700;}
+
+/* Realistic nav CTA */
+.btn-nav-app{
+  display:inline-flex;align-items:center;justify-content:center;
+  background:var(--green);color:#081510;
+  padding:9px 20px;border-radius:7px;
+  font-size:.78rem;font-weight:700;letter-spacing:.02em;
+  text-decoration:none;border:none;cursor:pointer;
+  box-shadow:0 1px 3px rgba(0,0,0,.25),0 4px 14px rgba(0,196,122,.28),inset 0 1px 0 rgba(255,255,255,.16);
+  transition:all .2s ease;white-space:nowrap;
+}
+.btn-nav-app:hover{background:#00dd8a;box-shadow:0 2px 6px rgba(0,0,0,.25),0 6px 22px rgba(0,196,122,.38);transform:translateY(-1px);}
+.btn-nav-app:active{transform:translateY(0);}
+
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;z-index:301;padding:4px;background:none;border:none;}
+.hamburger span{display:block;width:22px;height:2px;background:var(--text);transition:all .3s;border-radius:1px;}
+.hamburger.open span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}
+.hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0);}
+.hamburger.open span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}
+.mobile-menu{display:none;position:fixed;inset:0;z-index:299;background:rgba(8,12,20,.97);backdrop-filter:blur(24px);flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.mobile-menu.open{display:flex;}
+.mobile-menu a{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;color:var(--text);text-decoration:none;letter-spacing:-.03em;transition:color .2s;}
+.mobile-menu a:hover{color:var(--green);}
+.mobile-menu .btn-nav-app{font-size:.85rem;padding:14px 44px;border-radius:10px;margin-top:10px;}
+
+/* ─── SHARED BUTTONS ─── */
+.btn-primary-app{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--green);color:#081510;
+  padding:14px 28px;border-radius:8px;
+  font-family:'Syne',sans-serif;font-size:.84rem;font-weight:700;letter-spacing:.02em;
+  text-decoration:none;border:none;cursor:pointer;
+  box-shadow:0 1px 4px rgba(0,0,0,.2),0 6px 24px rgba(0,196,122,.28),inset 0 1px 0 rgba(255,255,255,.18);
+  transition:all .2s ease;
+}
+.btn-primary-app:hover{background:#00dd8a;box-shadow:0 4px 8px rgba(0,0,0,.22),0 10px 36px rgba(0,196,122,.4);transform:translateY(-2px);}
+.btn-primary-app:active{transform:translateY(0);}
+
+.btn-secondary-app{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--surface2);color:var(--text);
+  padding:14px 28px;border-radius:8px;
+  font-family:'Syne',sans-serif;font-size:.84rem;font-weight:600;letter-spacing:.02em;
+  text-decoration:none;border:1px solid var(--border2);cursor:pointer;
+  transition:all .2s ease;
+}
+.btn-secondary-app:hover{background:var(--surface3);border-color:rgba(255,255,255,.28);transform:translateY(-2px);}
+.btn-secondary-app:active{transform:translateY(0);}
+
+/* ─── STORE BADGES (professional SVG logos) ─── */
+.store-badges{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;}
+.store-badge{
+  display:flex;align-items:center;gap:12px;
+  background:var(--surface2);
+  border:1px solid var(--border2);
+  padding:11px 22px;border-radius:10px;
+  text-decoration:none;color:var(--text);
+  transition:all .22s ease;
+}
+.store-badge:hover{background:var(--surface3);border-color:rgba(255,255,255,.28);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.3);}
+.store-badge:active{transform:translateY(0);}
+.store-badge-logo{width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.store-badge-text{line-height:1.25;}
+.store-badge-text small{display:block;font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;font-weight:400;}
+.store-badge-text strong{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;display:block;}
+
+/* ─── HERO ─── */
+.hero{min-height:100vh;padding:100px 0 72px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;}
+.blob{position:absolute;border-radius:50%;filter:blur(110px);pointer-events:none;z-index:0;}
+.blob-1{width:500px;height:500px;background:rgba(0,196,122,.07);top:-120px;left:-80px;}
+.blob-2{width:420px;height:420px;background:rgba(59,130,246,.06);bottom:-80px;right:-60px;}
+.blob-3{width:260px;height:260px;background:rgba(139,92,246,.07);top:45%;left:50%;transform:translate(-50%,-50%);}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--green-dim);border:1px solid rgba(0,196,122,.28);border-radius:100px;padding:6px 16px;font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--green);margin-bottom:28px;position:relative;z-index:1;animation:fadeUp .6s ease .1s both;}
+.badge-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.8);}}
+.hero-title{font-family:'Syne',sans-serif;font-size:clamp(2.8rem,6vw,6rem);font-weight:800;letter-spacing:-.04em;line-height:.96;margin-bottom:24px;position:relative;z-index:1;animation:fadeUp .7s ease .2s both;}
+.hero-title .grad{display:block;background:linear-gradient(90deg,var(--green) 0%,var(--blue) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-title .dim{display:block;color:rgba(237,240,247,.2);}
+.hero-sub{font-size:1rem;line-height:1.8;color:var(--muted);max-width:480px;margin-bottom:36px;position:relative;z-index:1;animation:fadeUp .7s ease .34s both;}
+.hero-cta-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:20px;position:relative;z-index:1;animation:fadeUp .7s ease .48s both;}
+.hero-store-row{margin-bottom:56px;animation:fadeUp .7s ease .58s both;}
+
+/* ─── APP MOCKUP ─── */
+.mockup-wrap{position:relative;z-index:1;width:100%;max-width:740px;margin:0 auto;animation:fadeUp .8s ease .5s both;}
+.mockup-frame{background:var(--surface);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:3px;box-shadow:0 32px 100px rgba(0,0,0,.65),0 0 0 1px rgba(255,255,255,.06);overflow:hidden;}
+.mockup-inner{background:linear-gradient(155deg,#0F1825 0%,#090E18 100%);border-radius:16px;padding:20px;display:grid;grid-template-columns:180px 1fr;gap:14px;}
+.mockup-sidebar{background:var(--bg);border-radius:10px;padding:16px;border:1px solid var(--border);}
+.mock-user{display:flex;align-items:center;gap:9px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.mock-ava{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--green),var(--blue));flex-shrink:0;}
+.mock-uname{font-family:'Syne',sans-serif;font-size:.72rem;font-weight:700;}
+.mock-uplan{font-size:.6rem;color:var(--green);}
+.mock-nav{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:7px;margin-bottom:3px;font-size:.7rem;color:var(--muted);cursor:default;}
+.mock-nav.on{background:var(--green-dim);color:var(--green);}
+.mockup-main{background:var(--bg);border-radius:10px;padding:16px;border:1px solid var(--border);display:flex;flex-direction:column;gap:11px;}
+.mock-header{display:flex;justify-content:space-between;align-items:center;}
+.mock-greet{font-family:'Syne',sans-serif;font-size:.84rem;font-weight:700;}
+.mock-date{font-size:.64rem;color:var(--muted);}
+.mock-scores{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.mock-score{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 8px;text-align:center;}
+.mock-score-val{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:800;line-height:1;margin-bottom:3px;}
+.mock-score-lbl{font-size:.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;}
+.mock-score:nth-child(1) .mock-score-val{color:var(--blue);}
+.mock-score:nth-child(2) .mock-score-val{color:var(--green);}
+.mock-score:nth-child(3) .mock-score-val{color:#F87171;}
+.mock-score:nth-child(4) .mock-score-val{color:var(--purple);}
+.mock-charts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.mock-chart{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;}
+.mock-chart-title{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:9px;}
+.mock-bars{display:flex;align-items:flex-end;gap:3px;height:38px;}
+.mbar{flex:1;border-radius:2px 2px 0 0;}
+.mbar.sl{background:linear-gradient(to top,var(--blue),rgba(59,130,246,.25));}
+.mbar.fi{background:linear-gradient(to top,var(--green),rgba(0,196,122,.25));}
+.h{height:90%;}.m{height:60%;}.l{height:35%;}.xl{height:100%;}
+.mock-insight{background:linear-gradient(135deg,rgba(0,196,122,.06),rgba(59,130,246,.06));border:1px solid rgba(0,196,122,.16);border-radius:8px;padding:12px;}
+.mock-insight-lbl{font-size:.58rem;color:var(--green);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px;}
+.mock-insight-txt{font-size:.7rem;line-height:1.5;color:var(--muted);}
+.mock-insight-txt strong{color:var(--text);}
+
+/* ─── FEATURES ─── */
+.features{padding:92px 0;position:relative;z-index:1;}
+.features .wrap{}
+.features-hdr{text-align:center;margin-bottom:56px;}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--green);font-weight:600;margin-bottom:14px;}
+.section-h{font-family:'Syne',sans-serif;font-size:clamp(1.9rem,3.5vw,3.2rem);font-weight:800;letter-spacing:-.035em;line-height:1.06;margin-bottom:14px;}
+.section-h .acc{color:var(--green);}
+.section-p{color:var(--muted);font-size:.94rem;line-height:1.72;max-width:460px;margin:0 auto;}
+.feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.feat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:26px;transition:all .28s;position:relative;overflow:hidden;}
+.feat-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 0% 0%,rgba(0,196,122,.06),transparent 55%);opacity:0;transition:opacity .35s;}
+.feat-card:hover::before{opacity:1;}
+.feat-card:hover{border-color:rgba(0,196,122,.22);transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,196,122,.07);}
+.feat-num{font-family:'Syne',sans-serif;font-size:.64rem;font-weight:700;letter-spacing:.12em;color:var(--green);margin-bottom:13px;opacity:.6;}
+.feat-icon{width:44px;height:44px;border-radius:10px;background:var(--green-dim);border:1px solid rgba(0,196,122,.2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:13px;}
+.feat-name{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:9px;}
+.feat-desc{font-size:.83rem;color:var(--muted);line-height:1.7;}
+.feat-tag{display:inline-block;margin-top:12px;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--blue);background:var(--blue-dim);border:1px solid rgba(59,130,246,.18);padding:3px 9px;border-radius:100px;}
+
+/* ─── CALLOUT ─── */
+.callout-section{padding:0 48px 80px;position:relative;z-index:1;max-width:var(--max);margin:0 auto;}
+.callout-inner{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:52px;display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center;position:relative;overflow:hidden;}
+.callout-inner::before{content:'';position:absolute;right:-80px;top:-80px;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(0,196,122,.07),transparent 70%);pointer-events:none;}
+.callout-eyebrow{color:var(--green);margin-bottom:12px;font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;font-weight:600;}
+.callout-title{font-family:'Syne',sans-serif;font-size:2rem;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-bottom:16px;}
+.callout-title .acc{color:var(--green);}
+.callout-desc{color:var(--muted);font-size:.88rem;line-height:1.8;margin-bottom:24px;}
+.callout-list{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.callout-list li{display:flex;align-items:center;gap:10px;font-size:.84rem;color:var(--muted);}
+.callout-list li::before{content:'✓';width:20px;height:20px;border-radius:50%;background:var(--green-dim);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:800;flex-shrink:0;}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.metric-card{background:var(--bg);border:1px solid var(--border);border-radius:11px;padding:18px;}
+.metric-icon{font-size:1.1rem;margin-bottom:7px;display:block;}
+.metric-val{font-family:'Syne',sans-serif;font-size:1.7rem;font-weight:800;line-height:1;margin-bottom:3px;}
+.metric-card:nth-child(1) .metric-val{color:var(--blue);}
+.metric-card:nth-child(2) .metric-val{color:var(--green);}
+.metric-card:nth-child(3) .metric-val{color:#F87171;}
+.metric-card:nth-child(4) .metric-val{color:var(--purple);}
+.metric-name{font-size:.66rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;}
+
+/* ─── PRICING ─── */
+.app-pricing{padding:92px 0;position:relative;z-index:1;}
+.app-pricing .wrap{}
+.pricing-hdr{text-align:center;margin-bottom:52px;}
+
+/* single plan */
+.app-plan-single{max-width:480px;margin:0 auto;}
+.app-plan-card{background:linear-gradient(160deg,#0F1E2C 0%,#0B1420 100%);border:1.5px solid rgba(0,196,122,.28);border-radius:18px;padding:44px 40px;position:relative;box-shadow:0 0 60px rgba(0,196,122,.07),inset 0 1px 0 rgba(0,196,122,.12);}
+.app-plan-chip{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,var(--green),var(--blue));color:#080C14;font-size:.62rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 18px;border-radius:100px;white-space:nowrap;box-shadow:0 2px 12px rgba(0,196,122,.35);}
+.app-plan-tier{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-weight:700;margin-bottom:10px;text-align:center;}
+.app-plan-price-wrap{text-align:center;margin-bottom:6px;}
+.app-plan-price{font-family:'Syne',sans-serif;font-size:4.4rem;font-weight:800;line-height:1;display:inline-flex;align-items:flex-start;gap:2px;}
+.app-plan-dollar{font-size:1.8rem;margin-top:9px;color:var(--muted);}
+.app-plan-mo{font-size:.8rem;color:var(--muted);margin-bottom:10px;text-align:center;}
+.app-plan-trial{font-size:.8rem;color:var(--green);font-weight:600;text-align:center;margin-bottom:28px;background:rgba(0,196,122,.08);border:1px solid rgba(0,196,122,.16);padding:8px 16px;border-radius:7px;}
+.app-plan-fts{list-style:none;margin-bottom:32px;display:flex;flex-direction:column;gap:10px;}
+.app-plan-fts li{font-size:.84rem;color:var(--muted);display:flex;align-items:flex-start;gap:9px;}
+.tick{color:var(--green);flex-shrink:0;margin-top:1px;font-weight:700;}
+/* plan CTA */
+.app-plan-cta{
+  display:flex;align-items:center;justify-content:center;width:100%;
+  background:var(--green);color:#081510;
+  padding:16px 24px;border-radius:9px;
+  font-family:'Syne',sans-serif;font-size:.88rem;font-weight:800;letter-spacing:.03em;
+  text-decoration:none;border:none;cursor:pointer;
+  box-shadow:0 2px 4px rgba(0,0,0,.2),0 8px 28px rgba(0,196,122,.32),inset 0 1px 0 rgba(255,255,255,.16);
+  transition:all .2s ease;
+}
+.app-plan-cta:hover{background:#00dd8a;box-shadow:0 4px 8px rgba(0,0,0,.2),0 12px 40px rgba(0,196,122,.44);transform:translateY(-2px);}
+.app-plan-cta:active{transform:translateY(0);}
+.app-plan-note{text-align:center;font-size:.74rem;color:var(--muted2);margin-top:14px;}
+
+/* ─── SOCIAL PROOF ─── */
+.social-proof{padding:72px 0;position:relative;z-index:1;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
+.social-proof .wrap{}
+.proof-hdr{text-align:center;margin-bottom:40px;}
+.proof-stats{display:flex;justify-content:center;gap:64px;margin-bottom:52px;flex-wrap:wrap;}
+.proof-stat{text-align:center;}
+.proof-val{font-family:'Syne',sans-serif;font-size:2.8rem;font-weight:800;line-height:1;background:linear-gradient(90deg,var(--green),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.proof-lbl{font-size:.72rem;color:var(--muted);margin-top:6px;letter-spacing:.06em;}
+.reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.review{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;transition:all .28s;}
+.review:hover{border-color:rgba(0,196,122,.18);transform:translateY(-3px);box-shadow:0 10px 36px rgba(0,0,0,.2);}
+.r-stars{color:var(--green);font-size:.78rem;margin-bottom:11px;letter-spacing:2px;}
+.r-text{font-size:.83rem;color:var(--muted);line-height:1.7;margin-bottom:14px;}
+.r-author{display:flex;align-items:center;gap:9px;}
+.r-ava{width:30px;height:30px;border-radius:50%;flex-shrink:0;}
+.r-name{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;}
+.r-loc{font-size:.66rem;color:var(--muted2);}
+
+/* ─── DOWNLOAD CTA ─── */
+.dl-cta{padding:108px 0;text-align:center;position:relative;z-index:1;}
+.dl-cta::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(0,196,122,.05) 0%,transparent 70%);pointer-events:none;}
+.dl-title{font-family:'Syne',sans-serif;font-size:clamp(2.8rem,5.5vw,5.5rem);font-weight:800;letter-spacing:-.04em;line-height:.96;margin-bottom:22px;position:relative;}
+.dl-title .lg{display:block;background:linear-gradient(90deg,var(--green) 0%,var(--blue) 55%,var(--purple) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.dl-sub{font-size:.96rem;color:var(--muted);max-width:400px;margin:0 auto 36px;line-height:1.72;position:relative;}
+.dl-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;}
+
+/* ─── FOOTER ─── */
+footer{padding:36px 0;border-top:1px solid var(--border);position:relative;z-index:1;}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px;}
+.footer-r{display:flex;gap:24px;flex-wrap:wrap;}
+.footer-r a{font-size:.72rem;color:var(--muted2);text-decoration:none;letter-spacing:.06em;text-transform:uppercase;transition:color .28s;}
+.footer-r a:hover{color:var(--green);}
+.footer-copy{font-size:.7rem;color:var(--muted2);}
+
+/* ─── REVEAL ─── */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease;}
+.reveal.visible{opacity:1;transform:none;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:none;}}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:1140px){
+  .wrap{padding:0 32px;}
+  .callout-section{padding:0 32px 72px;}
+}
+@media(max-width:960px){
+  .feat-grid{grid-template-columns:1fr 1fr;}
+  .callout-inner{grid-template-columns:1fr;gap:36px;}
+  .metric-grid{grid-template-columns:repeat(4,1fr);}
+}
+@media(max-width:860px){
+  .nav-items{display:none;}
+  .hamburger{display:flex;}
+  nav{height:58px;}
+  nav .wrap{padding:0 22px;}
+  .wrap{padding:0 22px;}
+  .callout-section{padding:0 22px 60px;}
+  .hero{padding:80px 0 60px;}
+  .hero-title{font-size:clamp(2.6rem,8vw,4.2rem);}
+  .hero-sub{max-width:90%;}
+  .hero-cta-row{flex-direction:column;align-items:stretch;max-width:300px;margin-left:auto;margin-right:auto;}
+  .hero-cta-row .btn-primary-app,.hero-cta-row .btn-secondary-app{justify-content:center;}
+  .mockup-inner{grid-template-columns:1fr;}
+  .mockup-sidebar{display:none;}
+  .mock-scores{grid-template-columns:repeat(4,1fr);}
+  .features{padding:64px 0;}
+  .feat-grid{grid-template-columns:1fr 1fr;}
+  .app-pricing{padding:64px 0;}
+  .app-plan-single{max-width:100%;}
+  .social-proof{padding:56px 0;}
+  .proof-stats{gap:40px;}
+  .reviews{grid-template-columns:1fr;}
+  .dl-cta{padding:80px 0;}
+  footer .wrap{flex-direction:column;text-align:center;}
+  .footer-r{justify-content:center;}
+}
+@media(max-width:540px){
+  .hero-title{font-size:clamp(2.2rem,9.5vw,3.2rem);}
+  .store-badges{flex-direction:column;align-items:center;}
+  .feat-grid{grid-template-columns:1fr;}
+  .mock-scores{grid-template-columns:repeat(2,1fr);}
+  .metric-grid{grid-template-columns:1fr 1fr;}
+  .proof-stats{gap:24px;}
+  .proof-val{font-size:2.2rem;}
+  .app-plan-card{padding:36px 24px;}
+  .app-plan-price{font-size:3.6rem;}
+  .dl-title{font-size:clamp(2.4rem,9.5vw,3.5rem);}
+  .dl-btns{flex-direction:column;align-items:center;}
+  .dl-btns .btn-primary-app,.dl-btns .btn-secondary-app{width:100%;max-width:300px;justify-content:center;}
+  .callout-inner{padding:32px 24px;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <div class="wrap">
+    <a href="#" class="logo">VitalCore<span class="dot">.</span><sup>app</sup></a>
+    <div class="nav-items">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#reviews">Reviews</a>
+      <div class="nav-pill">
+        <a href="wellness-landing.html">Website</a>
+        <a href="#" class="active">App</a>
+      </div>
+      <a href="#pricing" class="btn-nav-app">Download Free</a>
+    </div>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#features"  class="mob-link">Features</a>
+  <a href="#pricing"   class="mob-link">Pricing</a>
+  <a href="#reviews"   class="mob-link">Reviews</a>
+  <a href="wellness-landing.html" class="mob-link">Website</a>
+  <a href="#pricing"   class="btn-nav-app">Download Free</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="blob blob-3"></div>
+
+  <div class="wrap" style="display:flex;flex-direction:column;align-items:center;width:100%;">
+    <div class="hero-badge"><div class="badge-dot"></div>Now Live on iOS &amp; Android</div>
+
+    <h1 class="hero-title">
+      Your Body's<br>
+      <span class="grad">Operating</span>
+      <span class="dim">System.</span>
+    </h1>
+
+    <p class="hero-sub">Sleep. Train. Eat. Recover. Coordinated by the same healthcare professionals who treat patients in clinics — now in your pocket.</p>
+
+    <div class="hero-cta-row">
+      <a href="#pricing" class="btn-primary-app">Start Free Trial</a>
+      <a href="#features" class="btn-secondary-app">See Features</a>
+    </div>
+
+    <!-- Professional Store Badges -->
+    <div class="store-badges hero-store-row">
+      <!-- Apple App Store -->
+      <a href="#" class="store-badge" aria-label="Download on the App Store">
+        <div class="store-badge-logo">
+          <svg viewBox="0 0 24 24" width="26" height="26" fill="white" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+          </svg>
+        </div>
+        <div class="store-badge-text">
+          <small>Download on the</small>
+          <strong>App Store</strong>
+        </div>
+      </a>
+      <!-- Google Play Store -->
+      <a href="#" class="store-badge" aria-label="Get it on Google Play">
+        <div class="store-badge-logo">
+          <svg viewBox="0 0 24 24" width="26" height="26" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3.18 23.76a2 2 0 0 1-1-.37L13.5 12 3.17.6a2 2 0 0 1 1-.37c.4 0 .8.13 1.13.4l12.4 7.16a2 2 0 0 1 0 3.42L5.3 23.37c-.33.26-.73.4-1.13.4z" fill="#EA4335"/>
+            <path d="M1.5 22.43A2 2 0 0 1 1 21V3a2 2 0 0 1 .5-1.43L13.5 12 1.5 22.43z" fill="#4285F4"/>
+            <path d="M20.63 14.18l-2.83 1.63L13.5 12l4.3-3.81 2.83 1.63a2 2 0 0 1 0 3.42-.06 0 0 0 0-.06z" fill="#FBBC05"/>
+            <path d="M1.5 1.57A2 2 0 0 1 3.18.23l12.4 7.16L13.5 12 1.5 1.57z" fill="#34A853"/>
+          </svg>
+        </div>
+        <div class="store-badge-text">
+          <small>Get it on</small>
+          <strong>Google Play</strong>
+        </div>
+      </a>
+    </div>
+
+    <!-- App Mockup -->
+    <div class="mockup-wrap">
+      <div class="mockup-frame">
+        <div class="mockup-inner">
+          <div class="mockup-sidebar">
+            <div class="mock-user">
+              <div class="mock-ava"></div>
+              <div><div class="mock-uname">Alex M.</div><div class="mock-uplan">Complete Plan</div></div>
+            </div>
+            <div class="mock-nav on"><span>🏠</span> Dashboard</div>
+            <div class="mock-nav"><span>😴</span> Sleep</div>
+            <div class="mock-nav"><span>💪</span> Fitness</div>
+            <div class="mock-nav"><span>🥗</span> Nutrition</div>
+            <div class="mock-nav"><span>🌿</span> Wellness</div>
+            <div class="mock-nav"><span>👨‍⚕️</span> Clinicians</div>
+          </div>
+          <div class="mockup-main">
+            <div class="mock-header">
+              <div class="mock-greet">Good morning, Alex 👋</div>
+              <div class="mock-date">Week 6 of 12</div>
+            </div>
+            <div class="mock-scores">
+              <div class="mock-score"><div class="mock-score-val">87</div><div class="mock-score-lbl">Sleep</div></div>
+              <div class="mock-score"><div class="mock-score-val">94%</div><div class="mock-score-lbl">Recovery</div></div>
+              <div class="mock-score"><div class="mock-score-val">2,340</div><div class="mock-score-lbl">Cal</div></div>
+              <div class="mock-score"><div class="mock-score-val">72</div><div class="mock-score-lbl">Wellness</div></div>
+            </div>
+            <div class="mock-charts">
+              <div class="mock-chart"><div class="mock-chart-title">Sleep — 7 Days</div><div class="mock-bars"><div class="mbar sl l"></div><div class="mbar sl m"></div><div class="mbar sl h"></div><div class="mbar sl m"></div><div class="mbar sl xl"></div><div class="mbar sl h"></div><div class="mbar sl h"></div></div></div>
+              <div class="mock-chart"><div class="mock-chart-title">Workouts — 7 Days</div><div class="mock-bars"><div class="mbar fi h"></div><div class="mbar fi l"></div><div class="mbar fi xl"></div><div class="mbar fi l"></div><div class="mbar fi m"></div><div class="mbar fi h"></div><div class="mbar fi l"></div></div></div>
+            </div>
+            <div class="mock-insight">
+              <div class="mock-insight-lbl">⚡ Clinician Insight</div>
+              <div class="mock-insight-txt"><strong>Dr. Whitfield:</strong> Your 7.8hr average this week is your personal best. Shifting dinner 30 mins earlier may improve deep sleep further based on your HRV data.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="wrap">
+    <div class="features-hdr">
+      <div class="eyebrow reveal">Core Features</div>
+      <h2 class="section-h reveal">Everything your health needs,<br><span class="acc">finally coordinated.</span></h2>
+      <p class="section-p reveal">Built on the same evidence base used in clinical settings — simplified for real, busy lives.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-card reveal"><div class="feat-num">01 —</div><div class="feat-icon">😴</div><h3 class="feat-name">Sleep Intelligence</h3><p class="feat-desc">Circadian tracking, sleep debt analysis, and nightly recovery scores from board-certified sleep physicians.</p><span class="feat-tag">Sleep Medicine</span></div>
+      <div class="feat-card reveal"><div class="feat-num">02 —</div><div class="feat-icon" style="background:var(--blue-dim);border-color:rgba(59,130,246,.2)">💪</div><h3 class="feat-name">Adaptive Fitness</h3><p class="feat-desc">12-week programs that auto-adjust based on your sleep quality, stress, and recovery data from the night before.</p><span class="feat-tag">Sports Science</span></div>
+      <div class="feat-card reveal"><div class="feat-num">03 —</div><div class="feat-icon" style="background:rgba(248,113,113,.08);border-color:rgba(248,113,113,.18)">🥗</div><h3 class="feat-name">Precision Nutrition</h3><p class="feat-desc">Dynamic macros that shift with your training load. Meal logging, supplement guidance, and weekly dietitian reviews.</p><span class="feat-tag">Clinical Nutrition</span></div>
+      <div class="feat-card reveal"><div class="feat-num">04 —</div><div class="feat-icon" style="background:rgba(139,92,246,.1);border-color:rgba(139,92,246,.2)">🧠</div><h3 class="feat-name">Mental Wellness</h3><p class="feat-desc">Stress tracking, mood journaling, breathing protocols, and cortisol-aware scheduling integrated into your day.</p><span class="feat-tag">Behavioral Health</span></div>
+      <div class="feat-card reveal"><div class="feat-num">05 —</div><div class="feat-icon">👨‍⚕️</div><h3 class="feat-name">Clinician Access</h3><p class="feat-desc">Direct messaging with the actual MDs, RDs, and physiologists behind your plan — not bots, not templates.</p><span class="feat-tag">Real Professionals</span></div>
+      <div class="feat-card reveal"><div class="feat-num">06 —</div><div class="feat-icon" style="background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.18)">📊</div><h3 class="feat-name">Unified Analytics</h3><p class="feat-desc">All four pillars in one dashboard. See exactly how your sleep affects your training, and how nutrition drives recovery.</p><span class="feat-tag">Data Intelligence</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- CALLOUT -->
+<div class="callout-section">
+  <div class="callout-inner reveal">
+    <div>
+      <div class="callout-eyebrow">Why VitalCore Wins</div>
+      <h3 class="callout-title">Healthcare costs too much.<br><span class="acc">We fixed that.</span></h3>
+      <p class="callout-desc">Traditional access to the four specialists in this app costs $300–$600/month. VitalCore is $20/month. Every protocol reflects what we prescribe in actual clinical practice.</p>
+      <ul class="callout-list">
+        <li>Built by <strong data-count="12" data-suffix="+">0</strong> active healthcare professionals</li>
+        <li>Clinically validated protocols — not influencer content</li>
+        <li>Plans adapt in real-time to your biometric data</li>
+        <li>Apple Health, Fitbit &amp; Garmin integration</li>
+        <li>HIPAA-compliant data handling</li>
+      </ul>
+    </div>
+    <div>
+      <div class="metric-grid">
+        <div class="metric-card"><span class="metric-icon">😴</span><div class="metric-val">+<span data-count="19" data-suffix="">0</span>%</div><div class="metric-name">More deep sleep</div></div>
+        <div class="metric-card"><span class="metric-icon">💪</span><div class="metric-val"><span data-count="94" data-suffix="%">0</span></div><div class="metric-name">Goal completion</div></div>
+        <div class="metric-card"><span class="metric-icon">⚖️</span><div class="metric-val">-<span data-count="18" data-suffix="">0</span>lbs</div><div class="metric-name">Avg. 90-day loss</div></div>
+        <div class="metric-card"><span class="metric-icon">⚡</span><div class="metric-val"><span data-count="3" data-suffix="×">0</span></div><div class="metric-name">Energy improvement</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING — single plan $20 -->
+<section class="app-pricing" id="pricing">
+  <div class="wrap">
+    <div class="pricing-hdr">
+      <div class="eyebrow reveal">Pricing</div>
+      <h2 class="section-h reveal">Less than a single co-pay.<br><span class="acc">All four specialties.</span></h2>
+      <p class="section-p reveal">No contracts. No hidden fees. Cancel anytime.</p>
+    </div>
+
+    <div class="app-plan-single reveal">
+      <div class="app-plan-card">
+        <div class="app-plan-chip">Everything Included</div>
+        <div class="app-plan-tier">Complete Wellness Plan</div>
+        <div class="app-plan-price-wrap">
+          <div class="app-plan-price">
+            <span class="app-plan-dollar">$</span>
+            <span data-count="20" data-suffix="">0</span>
+          </div>
+        </div>
+        <div class="app-plan-mo">per month</div>
+        <div class="app-plan-trial">🎉 14-day free trial — no credit card needed</div>
+        <ul class="app-plan-fts">
+          <li><span class="tick">✓</span> Full sleep optimization &amp; circadian tracking</li>
+          <li><span class="tick">✓</span> Adaptive 12-week fitness program</li>
+          <li><span class="tick">✓</span> Personalized nutrition &amp; macro protocols</li>
+          <li><span class="tick">✓</span> Mental wellness tools &amp; stress tracking</li>
+          <li><span class="tick">✓</span> Bi-weekly clinician plan review</li>
+          <li><span class="tick">✓</span> Direct clinician messaging</li>
+          <li><span class="tick">✓</span> Apple Health, Fitbit &amp; Garmin sync</li>
+          <li><span class="tick">✓</span> Progress dashboard &amp; analytics</li>
+        </ul>
+        <a href="#" class="app-plan-cta">Start My Free Trial</a>
+        <p class="app-plan-note">Join <strong data-count="50" data-suffix="K+">0</strong> members across the US &amp; Europe</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="social-proof" id="reviews">
+  <div class="wrap">
+    <div class="proof-hdr">
+      <div class="eyebrow reveal">Real Results</div>
+      <h2 class="section-h reveal" style="font-size:1.9rem">The numbers <span class="acc">speak.</span></h2>
+    </div>
+    <div class="proof-stats">
+      <div class="proof-stat"><div class="proof-val" data-count="50" data-suffix="K+">0</div><div class="proof-lbl">Active Members</div></div>
+      <div class="proof-stat"><div class="proof-val" data-count="92" data-suffix="%">0</div><div class="proof-lbl">Goal Achievement Rate</div></div>
+      <div class="proof-stat"><div class="proof-val" data-count="12" data-suffix="">0</div><div class="proof-lbl">Clinical Professionals</div></div>
+      <div class="proof-stat"><div class="proof-val" data-count="14" data-suffix=" Days">0</div><div class="proof-lbl">Free Trial</div></div>
+    </div>
+    <div class="reviews">
+      <div class="review reveal"><div class="r-stars">★★★★★</div><p class="r-text">"The sleep protocol gave me back my mornings. I've been waking up before my alarm for <strong data-count="6" data-suffix=" weeks">0</strong> straight."</p><div class="r-author"><div class="r-ava" style="background:linear-gradient(135deg,#3B82F6,#00C47A)"></div><div><div class="r-name">Ryan C.</div><div class="r-loc">Denver, CO · Complete Plan</div></div></div></div>
+      <div class="review reveal"><div class="r-stars">★★★★★</div><p class="r-text">"I've tried 6 fitness apps. This is the first that actually adjusted when my sleep was bad. It felt like it knew me."</p><div class="r-author"><div class="r-ava" style="background:linear-gradient(135deg,#8B5CF6,#3B82F6)"></div><div><div class="r-name">Stephanie V.</div><div class="r-loc">Boston, MA · Complete Plan</div></div></div></div>
+      <div class="review reveal"><div class="r-stars">★★★★★</div><p class="r-text">"My nutritionist alone was $<strong data-count="480" data-suffix="">0</strong>/month. VitalCore costs less and the dietitian has better credentials."</p><div class="r-author"><div class="r-ava" style="background:linear-gradient(135deg,#00C47A,#FBBC05)"></div><div><div class="r-name">Nathan B.</div><div class="r-loc">Portland, OR · Complete Plan</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD CTA -->
+<section class="dl-cta">
+  <div class="wrap" style="display:flex;flex-direction:column;align-items:center;">
+    <h2 class="dl-title">
+      Download.<br>
+      <span class="lg">Transform.</span><br>
+      Repeat.
+    </h2>
+    <p class="dl-sub">Your clinician-built wellness plan is waiting. Free for <strong data-count="14" data-suffix=" days">0</strong>. Powerful enough to replace everything else.</p>
+    <div class="dl-btns">
+      <a href="#" class="btn-primary-app">↓ Download Free — App Store</a>
+      <a href="#" class="btn-secondary-app">↓ Download Free — Google Play</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <a href="#" class="logo">VitalCore<span class="dot">.</span><sup>app</sup></a>
+    <div class="footer-copy">© 2025 VitalCore Health Inc. · Not a substitute for emergency care.</div>
+    <div class="footer-r">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+      <a href="wellness-landing.html">Main Site</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+$(function(){
+
+  /* Navbar */
+  $(window).on('scroll', function(){
+    $('#navbar').toggleClass('scrolled', $(this).scrollTop() > 40);
+  });
+
+  /* Hamburger */
+  $('#hamburger').on('click', function(){
+    $(this).toggleClass('open');
+    $('#mobileMenu').toggleClass('open');
+    $('body').toggleClass('no-scroll');
+  });
+  $('#mobileMenu a').on('click', function(){
+    $('#hamburger').removeClass('open');
+    $('#mobileMenu').removeClass('open');
+    $('body').removeClass('no-scroll');
+  });
+
+  /* Scroll reveal */
+  function checkReveal(){
+    $('.reveal:not(.visible)').each(function(){
+      if($(this).offset().top < $(window).scrollTop() + $(window).height() - 60)
+        $(this).addClass('visible');
+    });
+  }
+  $(window).on('scroll', checkReveal);
+  checkReveal();
+
+  /* ── Count-up (jQuery + rAF + easeOutCubic) ──
+     Fires once per [data-count] element when it enters the viewport.
+     Supports data-prefix and data-suffix.
+  */
+  function countUp($el){
+    if($el.data('counted')) return;
+    $el.data('counted', true);
+
+    var target   = parseInt($el.data('count'), 10);
+    var suffix   = $el.data('suffix') !== undefined ? String($el.data('suffix')) : '';
+    var prefix   = $el.data('prefix') !== undefined ? String($el.data('prefix')) : '';
+    var duration = 1800;
+    var startTs  = null;
+
+    function ease(t){ return 1 - Math.pow(1 - t, 3); }
+
+    function step(ts){
+      if(!startTs) startTs = ts;
+      var p = Math.min((ts - startTs) / duration, 1);
+      var v = Math.round(ease(p) * target);
+      $el.text(prefix + (target >= 1000 ? v.toLocaleString() : v) + suffix);
+      if(p < 1){
+        requestAnimationFrame(step);
+      } else {
+        $el.text(prefix + (target >= 1000 ? target.toLocaleString() : target) + suffix);
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function checkCounters(){
+    $('[data-count]').each(function(){
+      if($(this).offset().top < $(window).scrollTop() + $(window).height() - 40)
+        countUp($(this));
+    });
+  }
+  $(window).on('scroll', checkCounters);
+  checkCounters();
+
+});
+</script>
+</body>
+</html>
